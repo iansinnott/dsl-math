@@ -6,7 +6,8 @@
   },
   "type": "module",
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "tsx": "^3.12.8"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

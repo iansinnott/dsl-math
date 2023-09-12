@@ -6,6 +6,10 @@ const isNumber = (x: string) => {
   return /\d/.test(x);
 };
 
+const isWhitespace = (x: string) => {
+  return /\s/.test(x);
+};
+
 export class Tokenizer {
   currentIndex = 0;
   source = "";
@@ -43,20 +47,36 @@ export class Tokenizer {
     return ["NUMBER", Number(s)];
   }
 
+  whitespace() {
+    while (this.hasRemaining() && isWhitespace(this.getCurrentChar())) {
+      this.currentIndex++;
+    }
+
+    return this.next();
+  }
+
   next() {
+    if (!this.hasRemaining()) {
+      return;
+    }
+
     const currentChar = this.getCurrentChar();
 
     if (isNumber(currentChar)) {
       return this.number();
+    } else if (isWhitespace(currentChar)) {
+      return this.whitespace();
     }
 
-    throw new Error("Unimplemented. Remaining source: " + this.source);
+    throw new Error(
+      "Unimplemented. Remaining source: `" + this.source.slice(this.currentIndex) + "`"
+    );
   }
 
   tokenize() {
     const tokens: any[] = [];
 
-    while (true) {
+    while (this.hasRemaining()) {
       const x = this.next();
 
       if (!x) {
