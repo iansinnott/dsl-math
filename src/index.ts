@@ -2,13 +2,26 @@ interface TokenizerOpts {
   source: string;
 }
 
-const isNumber = (x: string) => {
-  return /\d/.test(x);
-};
+const SKIP = Symbol("SKIP_TOKEN");
 
-const isWhitespace = (x: string) => {
-  return /\s/.test(x);
-};
+interface Lex {
+  type: string;
+  regex: RegExp;
+  ret?: (matched: string) => any;
+}
+
+const lexicon: Lex[] = [
+  {
+    type: "NUMBER",
+    regex: /^\d+/,
+    ret: Number,
+  },
+  {
+    type: "whitespace",
+    regex: /^\s+/,
+    ret: () => SKIP,
+  },
+];
 
 export class Tokenizer {
   currentIndex = 0;
@@ -30,42 +43,25 @@ export class Tokenizer {
     return this.source.length > this.currentIndex;
   }
 
-  number() {
-    let s = "";
-
-    while (this.hasRemaining()) {
-      const c = this.getCurrentChar();
-
-      if (!isNumber(c)) {
-        break;
-      }
-
-      s += c;
-      this.currentIndex++;
-    }
-
-    return ["NUMBER", Number(s)];
-  }
-
-  whitespace() {
-    while (this.hasRemaining() && isWhitespace(this.getCurrentChar())) {
-      this.currentIndex++;
-    }
-
-    return this.next();
-  }
-
   next() {
     if (!this.hasRemaining()) {
       return;
     }
 
-    const currentChar = this.getCurrentChar();
+    for (const lex of lexicon) {
+      const remaining = this.source.slice(this.currentIndex);
+      const match = lex.regex.exec(remaining);
 
-    if (isNumber(currentChar)) {
-      return this.number();
-    } else if (isWhitespace(currentChar)) {
-      return this.whitespace();
+      if (match) {
+        const s = match[0];
+        const v = lex.ret ? lex.ret(s) : s;
+        this.currentIndex += s.length;
+        if (v === SKIP) {
+          return this.next();
+        } else {
+          return [lex.type, v];
+        }
+      }
     }
 
     throw new Error(
