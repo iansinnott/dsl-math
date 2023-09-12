@@ -23,7 +23,7 @@ const lexicon: Lex[] = [
   },
   {
     type: "OPERATOR",
-    regex: /^[+\-]/,
+    regex: /^[+\-*/]/,
   },
 ];
 

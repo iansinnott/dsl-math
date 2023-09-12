@@ -60,7 +60,7 @@ describe("tokenize", () => {
     }
   });
 
-  test("addition and subtraction", () => {
+  test("infix operators", () => {
     const tt: [string, any][] = [
       [
         "1 + 2 - 3",
@@ -70,6 +70,22 @@ describe("tokenize", () => {
           ["NUMBER", 2],
           ["OPERATOR", "-"],
           ["NUMBER", 3],
+        ],
+      ],
+      [
+        "4 * 4",
+        [
+          ["NUMBER", 4],
+          ["OPERATOR", "*"],
+          ["NUMBER", 4],
+        ],
+      ],
+      [
+        "4 / 4",
+        [
+          ["NUMBER", 4],
+          ["OPERATOR", "/"],
+          ["NUMBER", 4],
         ],
       ],
     ];
