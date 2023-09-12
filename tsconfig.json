@@ -9,6 +9,7 @@
     "noEmit": true,
     "composite": true,
     "strict": true,
+    "noImplicitAny": false,
     "downlevelIteration": true,
     "skipLibCheck": true,
     "jsx": "preserve",
