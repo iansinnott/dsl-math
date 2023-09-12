@@ -1,12 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import { Tokenizer } from ".";
+import { Parser, Tokenizer } from ".";
 
 describe("tokenize", () => {
+  test("empty source", () => {
+    const t = new Tokenizer({ source: "" });
+    expect(t.next()).toBe(null);
+  });
+
   test("integers", () => {
     const tt: [string, any][] = [
-      ["8", ["NUMBER", 8]],
-      ["888", ["NUMBER", 888]],
-      ["23", ["NUMBER", 23]],
+      ["8", ["Number", 8]],
+      ["888", ["Number", 888]],
+      ["23", ["Number", 23]],
     ];
 
     for (const [i, o] of tt) {
@@ -17,9 +22,9 @@ describe("tokenize", () => {
 
   test("non-lazy", () => {
     const tt: [string, any][] = [
-      ["8", [["NUMBER", 8]]],
-      ["888", [["NUMBER", 888]]],
-      ["23", [["NUMBER", 23]]],
+      ["8", [["Number", 8]]],
+      ["888", [["Number", 888]]],
+      ["23", [["Number", 23]]],
     ];
 
     for (const [i, o] of tt) {
@@ -43,13 +48,13 @@ describe("tokenize", () => {
 
   test("multiple tokens", () => {
     const tt: [string, any][] = [
-      [" 12", [["NUMBER", 12]]],
+      [" 12", [["Number", 12]]],
       [
         "1 2  33               ",
         [
-          ["NUMBER", 1],
-          ["NUMBER", 2],
-          ["NUMBER", 33],
+          ["Number", 1],
+          ["Number", 2],
+          ["Number", 33],
         ],
       ],
     ];
@@ -65,27 +70,27 @@ describe("tokenize", () => {
       [
         "1 + 2 - 3",
         [
-          ["NUMBER", 1],
-          ["OPERATOR", "+"],
-          ["NUMBER", 2],
-          ["OPERATOR", "-"],
-          ["NUMBER", 3],
+          ["Number", 1],
+          ["InfixOperator", "+"],
+          ["Number", 2],
+          ["InfixOperator", "-"],
+          ["Number", 3],
         ],
       ],
       [
         "4 * 4",
         [
-          ["NUMBER", 4],
-          ["OPERATOR", "*"],
-          ["NUMBER", 4],
+          ["Number", 4],
+          ["InfixOperator", "*"],
+          ["Number", 4],
         ],
       ],
       [
         "4 / 4",
         [
-          ["NUMBER", 4],
-          ["OPERATOR", "/"],
-          ["NUMBER", 4],
+          ["Number", 4],
+          ["InfixOperator", "/"],
+          ["Number", 4],
         ],
       ],
     ];
@@ -93,6 +98,114 @@ describe("tokenize", () => {
     for (const [i, o] of tt) {
       const t = new Tokenizer({ source: i });
       expect(t.tokenize()).toEqual(o);
+    }
+  });
+});
+
+describe("parse", () => {
+  test("single nodes", () => {
+    const tt = [
+      [
+        "12",
+        {
+          type: "Number",
+          value: 12,
+        },
+      ],
+    ];
+
+    for (const [i, o] of tt) {
+      expect(Parser.parseString(i as string)).toEqual(o);
+    }
+  });
+
+  test("simple expressions", () => {
+    const tt = [
+      [
+        "1 + 2",
+        {
+          type: "InfixOperator",
+          op: "+",
+          left: { type: "Number", value: 1 },
+          right: { type: "Number", value: 2 },
+        },
+      ],
+      [
+        "112 - 2",
+        {
+          type: "InfixOperator",
+          op: "-",
+          left: { type: "Number", value: 112 },
+          right: { type: "Number", value: 2 },
+        },
+      ],
+    ];
+
+    for (const [i, o] of tt) {
+      expect(Parser.parseString(i as string)).toEqual(o);
+    }
+  });
+
+  test("chained expressions", () => {
+    const tt = [
+      [
+        "1 + 2 - 3",
+        {
+          type: "InfixOperator",
+          op: "+",
+          left: {
+            type: "Number",
+            value: 1,
+          },
+          right: {
+            type: "InfixOperator",
+            op: "-",
+            left: {
+              type: "Number",
+              value: 2,
+            },
+            right: {
+              type: "Number",
+              value: 3,
+            },
+          },
+        },
+      ],
+      [
+        "1 + 1 + 1 + 1",
+        {
+          type: "InfixOperator",
+          op: "+",
+          left: {
+            type: "Number",
+            value: 1,
+          },
+          right: {
+            type: "InfixOperator",
+            op: "+",
+            left: {
+              type: "Number",
+              value: 1,
+            },
+            right: {
+              type: "InfixOperator",
+              op: "+",
+              left: {
+                type: "Number",
+                value: 1,
+              },
+              right: {
+                type: "Number",
+                value: 1,
+              },
+            },
+          },
+        },
+      ],
+    ];
+
+    for (const [i, o] of tt) {
+      expect(Parser.parseString(i as string)).toEqual(o);
     }
   });
 });

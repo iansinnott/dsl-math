@@ -12,7 +12,7 @@ export interface Lex {
 
 const lexicon: Lex[] = [
   {
-    type: "NUMBER",
+    type: "Number",
     regex: /^\d+/,
     ret: Number,
   },
@@ -22,10 +22,12 @@ const lexicon: Lex[] = [
     ret: () => SKIP,
   },
   {
-    type: "OPERATOR",
+    type: "InfixOperator",
     regex: /^[+\-*/]/,
   },
 ];
+
+export type Token = [type: string, any];
 
 export class Tokenizer {
   currentIndex = 0;
@@ -35,21 +37,13 @@ export class Tokenizer {
     this.source = source;
   }
 
-  getCurrentChar() {
-    if (this.currentIndex >= this.source.length) {
-      throw RangeError("Out of boudns: " + this.currentIndex);
-    }
-
-    return this.source[this.currentIndex];
-  }
-
   hasRemaining() {
     return this.source.length > this.currentIndex;
   }
 
-  next() {
+  next(): Token | null {
     if (!this.hasRemaining()) {
-      return;
+      return null;
     }
 
     for (const lex of lexicon) {
@@ -78,7 +72,7 @@ export class Tokenizer {
   }
 
   tokenize() {
-    const tokens: any[] = [];
+    const tokens: Token[] = [];
 
     while (this.hasRemaining()) {
       const x = this.next();
