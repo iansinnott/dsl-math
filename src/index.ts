@@ -21,6 +21,10 @@ const lexicon: Lex[] = [
     regex: /^\s+/,
     ret: () => SKIP,
   },
+  {
+    type: "OPERATOR",
+    regex: /^[+\-]/,
+  },
 ];
 
 export class Tokenizer {

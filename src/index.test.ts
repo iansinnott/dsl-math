@@ -59,4 +59,24 @@ describe("tokenize", () => {
       expect(t.tokenize()).toEqual(o);
     }
   });
+
+  test("addition and subtraction", () => {
+    const tt: [string, any][] = [
+      [
+        "1 + 2 - 3",
+        [
+          ["NUMBER", 1],
+          ["OPERATOR", "+"],
+          ["NUMBER", 2],
+          ["OPERATOR", "-"],
+          ["NUMBER", 3],
+        ],
+      ],
+    ];
+
+    for (const [i, o] of tt) {
+      const t = new Tokenizer({ source: i });
+      expect(t.tokenize()).toEqual(o);
+    }
+  });
 });
