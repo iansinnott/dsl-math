@@ -1,6 +1,9 @@
 {
   "name": "dsl-math",
   "module": "src/index.ts",
+  "scripts": {
+    "test": "bun test"
+  },
   "type": "module",
   "devDependencies": {
     "bun-types": "latest"
