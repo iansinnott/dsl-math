@@ -22,6 +22,14 @@ const lexicon: Lex[] = [
     ret: () => SKIP,
   },
   {
+    type: "(",
+    regex: /^\(/,
+  },
+  {
+    type: ")",
+    regex: /^\)/,
+  },
+  {
     type: "InfixOperator",
     regex: /^[+\-*/]/,
   },

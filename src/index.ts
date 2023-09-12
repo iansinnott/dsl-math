@@ -52,6 +52,7 @@ export class Parser {
   }
 
   InfixOperator() {
+    // NOTE: We expect a number on the left. We consume it, then move forward
     const left = this.Number();
     const op = this.current?.[1];
     this._eat("InfixOperator");
