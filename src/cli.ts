@@ -1,5 +1,5 @@
 import assert from "assert";
-import { Tokenizer } from ".";
+import { Parser, Tokenizer } from ".";
 
 interface CLIOpts {
   _cmdName: string;
@@ -17,6 +17,12 @@ const CLI: Record<string, CLICommand> = {
     const { source } = flags;
     const tokenizer = new Tokenizer({ source: source as string });
     console.log(tokenizer.tokenize());
+  },
+
+  parse: ({ args, flags }) => {
+    assert(flags.source, "no source provided");
+    const { source } = flags;
+    console.log(Parser.parseString(source as string));
   },
 };
 
