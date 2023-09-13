@@ -60,26 +60,19 @@ export class Parser {
   InfixOperator() {
     let left = this.ParenOrNumber() as any;
 
+    // - if there is no lookahead, then we're done
+    // - if there is lookahead, then it's a binary operator, due to the simplicity of our math DSL
+    // - if mult or division then we change the order of operations
     while (this.lookahead) {
-      if (this.lookahead.value === "*" || this.lookahead.value === "/") {
-        const op = this._eat("InfixOperator").value;
-        const right = this.ParenOrNumber();
-        left = {
-          type: "InfixOperator",
-          op,
-          left,
-          right,
-        };
-      } else {
-        const op = this._eat("InfixOperator").value;
-        const right = this.Expression();
-        left = {
-          type: "InfixOperator",
-          op,
-          left,
-          right,
-        };
-      }
+      const t = this._eat("InfixOperator");
+      const assocLeft = t.value === "*" || t.value === "/";
+      const right = assocLeft ? this.ParenOrNumber() : this.Expression();
+      left = {
+        type: "InfixOperator",
+        op: t.value,
+        left,
+        right,
+      };
     }
 
     return left;
