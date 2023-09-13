@@ -24,13 +24,11 @@ export class Parser {
   }
 
   _eat(type: string, value?: any) {
-    if (!this.lookahead) {
-      console.error(this.tokenizer.tokenize({ all: true }), this.tokenizer.source);
-      throw new SyntaxError(`Expected token: ${type}`);
-    }
-
-    if (this.lookahead.type !== type) {
-      throw new SyntaxError(`Unexpected token type: ${type}`);
+    if (!this.lookahead || this.lookahead.type !== type) {
+      console.log("index:", this.tokenizer.currentIndex);
+      console.error(this.tokenizer.tokenize({ all: true }));
+      console.error(this.tokenizer.source);
+      throw new SyntaxError(`Expected token: '${type}' but got '${this.lookahead?.type}'`);
     }
 
     const t = this.lookahead;
@@ -60,20 +58,31 @@ export class Parser {
   // prcedence. In which case there is no right hand side or operator, we just
   // return the left.
   InfixOperator() {
-    const left = this.ParenOrNumber();
+    let left = this.ParenOrNumber() as any;
 
-    if (!this.lookahead) {
-      return left;
+    while (this.lookahead) {
+      if (this.lookahead.value === "*" || this.lookahead.value === "/") {
+        const op = this._eat("InfixOperator").value;
+        const right = this.ParenOrNumber();
+        left = {
+          type: "InfixOperator",
+          op,
+          left,
+          right,
+        };
+      } else {
+        const op = this._eat("InfixOperator").value;
+        const right = this.Expression();
+        left = {
+          type: "InfixOperator",
+          op,
+          left,
+          right,
+        };
+      }
     }
 
-    const op = this._eat("InfixOperator").value;
-    const right = this.Expression();
-    return {
-      type: "InfixOperator",
-      op,
-      left,
-      right,
-    };
+    return left;
   }
 
   Expression() {

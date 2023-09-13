@@ -241,20 +241,43 @@ describe("parse", () => {
     }
   });
 
-  test.skip("order of operations", () => {
+  test("order of operations", () => {
     const tt = [
       [
         "1 * 2 - 3",
         {
           type: "InfixOperator",
-          op: "+",
+          op: "-",
+          left: {
+            type: "InfixOperator",
+            op: "*",
+            left: {
+              type: "Number",
+              value: 1,
+            },
+            right: {
+              type: "Number",
+              value: 2,
+            },
+          },
+          right: {
+            type: "Number",
+            value: 3,
+          },
+        },
+      ],
+      [
+        "1 - 2 * 3",
+        {
+          type: "InfixOperator",
+          op: "-",
           left: {
             type: "Number",
             value: 1,
           },
           right: {
             type: "InfixOperator",
-            op: "-",
+            op: "*",
             left: {
               type: "Number",
               value: 2,
