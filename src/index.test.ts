@@ -295,4 +295,20 @@ describe("parse", () => {
       expect(Parser.parseString(i as string)).toEqual(o);
     }
   });
+
+  test("parens", () => {
+    const tt = [
+      [
+        "(12)",
+        {
+          type: "Number",
+          value: 12,
+        },
+      ],
+    ];
+
+    for (const [i, o] of tt) {
+      expect(Parser.parseString(i as string)).toEqual(o);
+    }
+  });
 });

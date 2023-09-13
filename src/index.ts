@@ -44,10 +44,20 @@ export class Parser {
     };
   }
 
+  ParenExpression() {
+    this._eat("(");
+    const x = this.Expression();
+    this._eat(")");
+
+    return x;
+  }
+
   ParenOrNumber() {
     switch (this.lookahead?.type) {
       case "Number":
         return this.Number();
+      case "(":
+        return this.ParenExpression();
       default:
         throw new SyntaxError("Not a paren or number");
     }
@@ -61,9 +71,9 @@ export class Parser {
     let left = this.ParenOrNumber() as any;
 
     // - if there is no lookahead, then we're done
-    // - if there is lookahead, then it's a binary operator, due to the simplicity of our math DSL
+    // - if there is lookahead, then it's probably binary operator, due to the simplicity of our math DSL
     // - if mult or division then we change the order of operations
-    while (this.lookahead) {
+    while (this.lookahead?.type === "InfixOperator") {
       const t = this._eat("InfixOperator");
       const assocLeft = t.value === "*" || t.value === "/";
       const right = assocLeft ? this.ParenOrNumber() : this.Expression();
