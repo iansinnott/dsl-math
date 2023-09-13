@@ -14,48 +14,59 @@ export class Parser {
   };
 
   tokenizer: Tokenizer;
-  current: Token | null;
   lookahead: Token | null;
 
   constructor({ tokenizer }: ParserOpts) {
     this.tokenizer = tokenizer;
 
     // Populate
-    this.current = tokenizer.next();
     this.lookahead = tokenizer.next();
   }
 
   _eat(type: string, value?: any) {
-    if (!this.current) {
+    if (!this.lookahead) {
+      console.error(this.tokenizer.tokenize({ all: true }), this.tokenizer.source);
       throw new SyntaxError(`Expected token: ${type}`);
     }
 
-    if (this.current[0] !== type) {
+    if (this.lookahead.type !== type) {
       throw new SyntaxError(`Unexpected token type: ${type}`);
     }
 
-    if (typeof value !== "undefined" && value !== this.current[1]) {
-      throw new SyntaxError(`Unexpected token value: ${this.current[0]}:${this.current[1]}`);
-    }
-
-    this.current = this.lookahead;
+    const t = this.lookahead;
     this.lookahead = this.tokenizer.next();
+    return t;
   }
 
   Number() {
-    const t = this.current;
-    this._eat("Number");
+    const t = this._eat("Number");
     return {
       type: "Number",
-      value: t?.[1],
+      value: Number(t.value),
     };
   }
 
+  ParenOrNumber() {
+    switch (this.lookahead?.type) {
+      case "Number":
+        return this.Number();
+      default:
+        throw new SyntaxError("Not a paren or number");
+    }
+  }
+
+  // NOTE: The code is hard to read IMO, but there is a heirarchy. Infix
+  // operator is responsible for itself but also for anything with lower
+  // prcedence. In which case there is no right hand side or operator, we just
+  // return the left.
   InfixOperator() {
-    // NOTE: We expect a number on the left. We consume it, then move forward
-    const left = this.Number();
-    const op = this.current?.[1];
-    this._eat("InfixOperator");
+    const left = this.ParenOrNumber();
+
+    if (!this.lookahead) {
+      return left;
+    }
+
+    const op = this._eat("InfixOperator").value;
     const right = this.Expression();
     return {
       type: "InfixOperator",
@@ -66,26 +77,12 @@ export class Parser {
   }
 
   Expression() {
-    if (!this.current) {
+    if (!this.lookahead) {
       console.warn("Empty source");
       return;
     }
 
-    // If there is no lookahead process the current token as is
-    if (!this.lookahead) {
-      // Assume the type has a method, if not this should through
-      return this[this.current[0]]();
-    }
-
-    // Switch based on lookahead
-    switch (this.lookahead[0]) {
-      case "InfixOperator":
-        return this.InfixOperator();
-      case "Number":
-        return this[this.current[0]]();
-      default:
-        throw new SyntaxError("unexpected token: " + this.lookahead);
-    }
+    return this.InfixOperator();
   }
 
   parse() {

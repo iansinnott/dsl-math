@@ -9,9 +9,9 @@ describe("tokenize", () => {
 
   test("integers", () => {
     const tt: [string, any][] = [
-      ["8", ["Number", 8]],
-      ["888", ["Number", 888]],
-      ["23", ["Number", 23]],
+      ["8", { type: "Number", value: "8" }],
+      ["888", { type: "Number", value: "888" }],
+      ["23", { type: "Number", value: "23" }],
     ];
 
     for (const [i, o] of tt) {
@@ -22,9 +22,9 @@ describe("tokenize", () => {
 
   test("non-lazy", () => {
     const tt: [string, any][] = [
-      ["8", [["Number", 8]]],
-      ["888", [["Number", 888]]],
-      ["23", [["Number", 23]]],
+      ["8", [{ type: "Number", value: "8" }]],
+      ["888", [{ type: "Number", value: "888" }]],
+      ["23", [{ type: "Number", value: "23" }]],
     ];
 
     for (const [i, o] of tt) {
@@ -48,13 +48,13 @@ describe("tokenize", () => {
 
   test("multiple tokens", () => {
     const tt: [string, any][] = [
-      [" 12", [["Number", 12]]],
+      [" 12", [{ type: "Number", value: "12" }]],
       [
         "1 2  33               ",
         [
-          ["Number", 1],
-          ["Number", 2],
-          ["Number", 33],
+          { type: "Number", value: "1" },
+          { type: "Number", value: "2" },
+          { type: "Number", value: "33" },
         ],
       ],
     ];
@@ -70,27 +70,27 @@ describe("tokenize", () => {
       [
         "1 + 2 - 3",
         [
-          ["Number", 1],
-          ["InfixOperator", "+"],
-          ["Number", 2],
-          ["InfixOperator", "-"],
-          ["Number", 3],
+          { type: "Number", value: "1" },
+          { type: "InfixOperator", value: "+" },
+          { type: "Number", value: "2" },
+          { type: "InfixOperator", value: "-" },
+          { type: "Number", value: "3" },
         ],
       ],
       [
-        "4 * 4",
+        "4 - 4",
         [
-          ["Number", 4],
-          ["InfixOperator", "*"],
-          ["Number", 4],
+          { type: "Number", value: "4" },
+          { type: "InfixOperator", value: "-" },
+          { type: "Number", value: "4" },
         ],
       ],
       [
         "4 / 4",
         [
-          ["Number", 4],
-          ["InfixOperator", "/"],
-          ["Number", 4],
+          { type: "Number", value: "4" },
+          { type: "InfixOperator", value: "/" },
+          { type: "Number", value: "4" },
         ],
       ],
     ];
@@ -106,23 +106,23 @@ describe("tokenize", () => {
       [
         "(1 + 2) * 8",
         [
-          ["(", "("],
-          ["Number", 1],
-          ["InfixOperator", "+"],
-          ["Number", 2],
-          [")", ")"],
-          ["InfixOperator", "*"],
-          ["Number", 8],
+          { type: "(", value: "(" },
+          { type: "Number", value: "1" },
+          { type: "InfixOperator", value: "+" },
+          { type: "Number", value: "2" },
+          { type: ")", value: ")" },
+          { type: "InfixOperator", value: "*" },
+          { type: "Number", value: "8" },
         ],
       ],
       [
         "(4 / 4)",
         [
-          ["(", "("],
-          ["Number", 4],
-          ["InfixOperator", "/"],
-          ["Number", 4],
-          [")", ")"],
+          { type: "(", value: "(" },
+          { type: "Number", value: "4" },
+          { type: "InfixOperator", value: "/" },
+          { type: "Number", value: "4" },
+          { type: ")", value: ")" },
         ],
       ],
     ];

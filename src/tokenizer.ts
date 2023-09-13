@@ -2,40 +2,20 @@ export interface TokenizerOpts {
   source: string;
 }
 
-const SKIP = Symbol("SKIP_TOKEN");
-
-export interface Lex {
-  type: string;
-  regex: RegExp;
-  ret?: (matched: string) => any;
-}
+export type Lex = [RegExp, string | null];
 
 const lexicon: Lex[] = [
-  {
-    type: "Number",
-    regex: /^\d+/,
-    ret: Number,
-  },
-  {
-    type: "whitespace",
-    regex: /^\s+/,
-    ret: () => SKIP,
-  },
-  {
-    type: "(",
-    regex: /^\(/,
-  },
-  {
-    type: ")",
-    regex: /^\)/,
-  },
-  {
-    type: "InfixOperator",
-    regex: /^[+\-*/]/,
-  },
+  [/^\s+/, null], // whitespace
+  [/^\d+/, "Number"],
+  [/^\(/, "("],
+  [/^\)/, ")"],
+  [/^[+\-*/]/, "InfixOperator"],
 ];
 
-export type Token = [type: string, any];
+export type Token = {
+  type: string;
+  value: string;
+};
 
 export class Tokenizer {
   currentIndex = 0;
@@ -54,9 +34,9 @@ export class Tokenizer {
       return null;
     }
 
-    for (const lex of lexicon) {
+    for (const [regex, type] of lexicon) {
       const remaining = this.source.slice(this.currentIndex);
-      const match = lex.regex.exec(remaining);
+      const match = regex.exec(remaining);
 
       if (match) {
         if (match.index !== 0) {
@@ -64,12 +44,14 @@ export class Tokenizer {
         }
 
         const s = match[0];
-        const v = lex.ret ? lex.ret(s) : s;
         this.currentIndex += s.length;
-        if (v === SKIP) {
+        if (type === null) {
           return this.next();
         } else {
-          return [lex.type, v];
+          return {
+            type,
+            value: s,
+          };
         }
       }
     }
@@ -79,8 +61,13 @@ export class Tokenizer {
     );
   }
 
-  tokenize() {
+  tokenize({ all = false } = {}) {
     const tokens: Token[] = [];
+
+    // Reset to the beginning if requested
+    if (all) {
+      this.currentIndex = 0;
+    }
 
     while (this.hasRemaining()) {
       const x = this.next();
